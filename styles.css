@@ -1,0 +1,71 @@
+.applied-job {
+  /* Styles for a job that has been applied for */
+  border: 5px solid #4caf50;
+  border-radius: 10px;
+  background-color: #005503 !important;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5); /* A subtle green glow */
+  transition: all 0.3s ease-in-out;
+  position: relative; /* נחוץ עבור מיקום ה-Checkmark */
+  opacity: 0.6;
+}
+
+/* מאחר ולמודעות יש רקע פנימי, נצבע גם אותו כדי שהירוק ישלוט */
+.applied-job .jobItemInnerBox {
+  background-color: transparent !important;
+}
+
+.applied-job .jobItemTitle h3 {
+  color: #ffffff !important; /* צבע כותרת בהיר על רקע ירוק כהה */
+}
+
+/* Optional: Add a checkmark icon */
+.applied-job::after {
+  color: #ffffff;
+  content: "✅ Applied";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 32px;
+  font-weight: bolder;
+  transform: rotate(10deg);
+  z-index: 99;
+}
+
+/******************** The extension message that indicates that the extension is working ********************/
+.my-extension-banner {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  z-index: 999999;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.my-extension-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s;
+}
+
+.my-extension-close:hover {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transform: scale(1.3);
+}
