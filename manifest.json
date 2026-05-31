@@ -1,10 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Mertens Job Filter",
-  "version": "1.0.0",
+  "name": "Mertens & CorrectTech Job Filter",
+  "version": "1.1.0",
   "content_scripts": [
     {
-      "matches": ["https://www.correct-tech.co.il/*"],
+      "matches": [
+        "https://www.correct-tech.co.il/*",
+        "https://mertens.malam.com/*"
+      ],
       "js": ["content.js"],
       "css": ["styles.css"],
       "run_at": "document_start"

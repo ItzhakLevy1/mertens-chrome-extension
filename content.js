@@ -1,6 +1,7 @@
 /*************************************************
- * CorrectTech Job Tracker – content.js
+ * Multi-Site Job Tracker – content.js
  * Minimizes banner indication and tracks applied jobs
+ * For: CorrectTech & Malam-Mertens
  *************************************************/
 
 /*************************************************
@@ -17,7 +18,6 @@ function ensureExtensionBanner() {
   messageDiv.className = "my-extension-banner";
 
   const textSpan = document.createElement("span");
-  // שינוי מבנה התפריט למינימום המבוקש
   textSpan.innerHTML = `<div>תוסף המשרות שלי פעיל 🟢</div>`;
 
   const closeBtn = document.createElement("button");
@@ -35,20 +35,44 @@ function ensureExtensionBanner() {
 }
 
 /*************************************************
+ * Helper: Extract Job ID from element
+ *************************************************/
+function getJobIdFromElement(button) {
+  // 1. בדיקה אם מדובר באתר המקורי (CorrectTech) עם data-jobid
+  let jobId = button.getAttribute("data-jobid");
+  if (jobId) return jobId;
+
+  // 2. בדיקה אם מדובר באתר החדש (Malam) - שליפת ה-jid מה-href URL
+  const href = button.getAttribute("href");
+  if (href && href.includes("jid=")) {
+    try {
+      const urlParams = new URLSearchParams(href.substring(href.indexOf('?')));
+      jobId = urlParams.get('jid');
+    } catch (e) {
+      console.error("Failed to parse Malam jobId from URL", e);
+    }
+  }
+  return jobId;
+}
+
+/*************************************************
  * Checking and Marking Applied Jobs
  *************************************************/
 function checkAndMarkAppliedJobs() {
-  const jobs = document.querySelectorAll(".jobItemOuterBox");
+  // תמיכה בשני סוגי הקונטיינרים של המשרות
+  const jobSelectors = ".jobItemOuterBox, .job-item-container";
+  const jobs = document.querySelectorAll(jobSelectors);
+  
   const appliedJobIds = JSON.parse(
     localStorage.getItem("appliedJobIds") || "[]"
   );
 
   jobs.forEach((job) => {
-    // מציאת הכפתור שמכיל את ה-jobid בתוך קונטיינר המשרה
-    const button = job.querySelector("a.genBtn[data-jobid]");
+    // מציאת הכפתור הרלוונטי (CorrectTech או Malam) בתוך קונטיינר המשרה
+    const button = job.querySelector("a.genBtn[data-jobid], .job-actions a.btn");
     if (!button) return;
 
-    const jobId = button.getAttribute("data-jobid");
+    const jobId = getJobIdFromElement(button);
     
     if (jobId && appliedJobIds.includes(jobId)) {
       job.classList.add("applied-job");
@@ -62,22 +86,23 @@ function checkAndMarkAppliedJobs() {
  * Track applied jobs (Click Listeners)
  *************************************************/
 function addApplyButtonListeners() {
-  // התאמה לכפתור "פרטים נוספים" המכיל את ה-jobid
-  const applyLinks = document.querySelectorAll("a.genBtn[data-jobid]");
+  // האזנה לשני סוגי הכפתורים בשני האתרים
+  const buttonSelectors = "a.genBtn[data-jobid], .job-actions a.btn";
+  const applyLinks = document.querySelectorAll(buttonSelectors);
 
   applyLinks.forEach((link) => {
-    // מניעת כפל האזנות אם הפונקציה רצה שוב ושוב ב-Observer
     if (link.getAttribute("data-has-listener") === "true") return;
     link.setAttribute("data-has-listener", "true");
 
     link.addEventListener("click", (event) => {
-      const button = event.target.closest("a.genBtn[data-jobid]");
+      const button = event.target.closest(buttonSelectors);
       if (!button) return;
 
-      const jobContainer = button.closest(".jobItemOuterBox");
+      // מציאת הקונטיינר המתאים לפי האתר הנוכחי
+      const jobContainer = button.closest(".jobItemOuterBox, .job-item-container");
       if (!jobContainer) return;
 
-      const jobId = button.getAttribute("data-jobid");
+      const jobId = getJobIdFromElement(button);
       if (!jobId) return;
 
       let appliedJobIds = JSON.parse(

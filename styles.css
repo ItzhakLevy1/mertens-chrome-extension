@@ -13,6 +13,15 @@
   color: #ffffff !important; 
 }
 
+/* התאמה לאתר החדש של מאלאם - דואג שהכותרת תישאר קריאה על הרקע הירוק */
+.applied-job h2.job-name {
+  color: #155724 !important;
+}
+
+.applied-job .job-data, .applied-job .job-excerpt {
+  color: #1c7430 !important;
+}
+
 /* Optional: Add a checkmark icon */
 .applied-job::after {
   color: #ffffff;
