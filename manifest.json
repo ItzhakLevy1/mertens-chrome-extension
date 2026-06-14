@@ -6,7 +6,8 @@
     {
       "matches": [
         "https://www.correct-tech.co.il/*",
-        "https://mertens.malam.com/*"
+        "https://mertens.malam.com/*",
+        "https://campaign.adamtotal.co.il/*"
       ],
       "js": ["content.js"],
       "css": ["styles.css"],

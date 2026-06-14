@@ -1,7 +1,7 @@
 /*************************************************
  * Multi-Site Job Tracker – content.js
  * Minimizes banner indication and tracks applied jobs
- * For: CorrectTech & Malam-Mertens
+ * For: CorrectTech, Malam-Mertens & AdamTotal
  *************************************************/
 
 /*************************************************
@@ -18,6 +18,7 @@ function ensureExtensionBanner() {
   messageDiv.className = "my-extension-banner";
 
   const textSpan = document.createElement("span");
+  // Set minimized active status message
   textSpan.innerHTML = `<div>תוסף המשרות שלי פעיל 🟢</div>`;
 
   const closeBtn = document.createElement("button");
@@ -35,72 +36,98 @@ function ensureExtensionBanner() {
 }
 
 /*************************************************
- * Helper: Extract Job ID from element
+ * Helper: Extract Job ID from element or page
  *************************************************/
 function getJobIdFromElement(button) {
-  // 1. בדיקה אם מדובר באתר המקורי (CorrectTech) עם data-jobid
+  // 1. CorrectTech platform (via data-jobid attribute)
   let jobId = button.getAttribute("data-jobid");
   if (jobId) return jobId;
 
-  // 2. בדיקה אם מדובר באתר החדש (Malam) - שליפת ה-jid מה-href URL
+  // 2. Malam-Mertens platform (via jid URL Parameter)
   const href = button.getAttribute("href");
   if (href && href.includes("jid=")) {
     try {
       const urlParams = new URLSearchParams(href.substring(href.indexOf('?')));
       jobId = urlParams.get('jid');
+      if (jobId) return jobId;
     } catch (e) {
       console.error("Failed to parse Malam jobId from URL", e);
     }
   }
-  return jobId;
+
+  // 3. AdamTotal platform - extract the ID from the text node containing the job number
+  const jobSpan = document.querySelector("span.inline-flex.items-center.gap-2");
+  if (jobSpan && jobSpan.innerText.includes("מספר משרה:")) {
+    const match = jobSpan.innerText.match(/\d+/);
+    if (match) return match[0];
+  }
+
+  return null;
+}
+
+/*************************************************
+ * Helper: Find AdamTotal Container
+ *************************************************/
+function getAdamTotalContainer() {
+  const jobTitle = document.querySelector("#job_title");
+  // Locates the main wrapper div enclosing the job title header
+  return jobTitle ? jobTitle.parentElement : null;
 }
 
 /*************************************************
  * Checking and Marking Applied Jobs
  *************************************************/
 function checkAndMarkAppliedJobs() {
-  // תמיכה בשני סוגי הקונטיינרים של המשרות
-  const jobSelectors = ".jobItemOuterBox, .job-item-container";
-  const jobs = document.querySelectorAll(jobSelectors);
-  
   const appliedJobIds = JSON.parse(
     localStorage.getItem("appliedJobIds") || "[]"
   );
 
-  jobs.forEach((job) => {
-    // מציאת הכפתור הרלוונטי (CorrectTech או Malam) בתוך קונטיינר המשרה
+  // A. Process standard job board listings (CorrectTech & Malam-Mertens)
+  const listJobSelectors = ".jobItemOuterBox, .job-item-container";
+  const listJobs = document.querySelectorAll(listJobSelectors);
+
+  listJobs.forEach((job) => {
     const button = job.querySelector("a.genBtn[data-jobid], .job-actions a.btn");
     if (!button) return;
 
     const jobId = getJobIdFromElement(button);
-    
     if (jobId && appliedJobIds.includes(jobId)) {
       job.classList.add("applied-job");
     } else {
       job.classList.remove("applied-job");
     }
   });
+
+  // B. Process single-page landing layouts (AdamTotal) - highlight inner wrapper container only
+  if (window.location.hostname.includes("adamtotal.co.il")) {
+    const adamContainer = getAdamTotalContainer();
+    if (adamContainer) {
+      const currentJobId = getJobIdFromElement(adamContainer);
+      if (currentJobId && appliedJobIds.includes(currentJobId)) {
+        adamContainer.classList.add("applied-job");
+      } else {
+        adamContainer.classList.remove("applied-job");
+      }
+    }
+  }
 }
 
 /*************************************************
  * Track applied jobs (Click Listeners)
  *************************************************/
 function addApplyButtonListeners() {
-  // האזנה לשני סוגי הכפתורים בשני האתרים
-  const buttonSelectors = "a.genBtn[data-jobid], .job-actions a.btn";
+  // Aggregate application button selectors from all three targeted platforms
+  const buttonSelectors = "a.genBtn[data-jobid], .job-actions a.btn, #Apply_for_This_Position_button";
   const applyLinks = document.querySelectorAll(buttonSelectors);
 
   applyLinks.forEach((link) => {
+    // Prevent attaching duplicate event handlers during continuous MutationObserver cycles
     if (link.getAttribute("data-has-listener") === "true") return;
     link.setAttribute("data-has-listener", "true");
 
     link.addEventListener("click", (event) => {
       const button = event.target.closest(buttonSelectors);
       if (!button) return;
-
-      // מציאת הקונטיינר המתאים לפי האתר הנוכחי
-      const jobContainer = button.closest(".jobItemOuterBox, .job-item-container");
-      if (!jobContainer) return;
 
       const jobId = getJobIdFromElement(button);
       if (!jobId) return;
@@ -114,7 +141,17 @@ function addApplyButtonListeners() {
         localStorage.setItem("appliedJobIds", JSON.stringify(appliedJobIds));
       }
 
-      jobContainer.classList.add("applied-job");
+      // Determine the target UI element to style based on the originating host platform
+      let jobContainer;
+      if (button.id === "Apply_for_This_Position_button") {
+        jobContainer = getAdamTotalContainer();
+      } else {
+        jobContainer = button.closest(".jobItemOuterBox, .job-item-container");
+      }
+
+      if (jobContainer) {
+        jobContainer.classList.add("applied-job");
+      }
     });
   });
 }

@@ -13,13 +13,18 @@
   color: #ffffff !important; 
 }
 
-/* התאמה לאתר החדש של מאלאם - דואג שהכותרת תישאר קריאה על הרקע הירוק */
+/* Matching Malam-Mertens website */
 .applied-job h2.job-name {
-  color: #155724 !important;
+  color: #00ff3cb7;
 }
 
 .applied-job .job-data, .applied-job .job-excerpt {
   color: #1c7430 !important;
+}
+
+/* Adaptation to the AdamTotal website - ensures that internal parts do not obscure the new green background color */
+.applied-job .bg-white, .applied-job .bg-slate-50 {
+  background-color: transparent !important;
 }
 
 /* Optional: Add a checkmark icon */
@@ -28,7 +33,7 @@
   content: "✅ Applied";
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 40%;
   font-size: 32px;
   font-weight: bolder;
   transform: rotate(10deg);
